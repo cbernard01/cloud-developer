@@ -108,7 +108,7 @@ import { Car, cars as cars_list } from './cars';
       return res.status(404).send(`car is not found`);
     }
 
-    //return the car with a sucess status code
+    //return the car with a success status code
     res.status(200).send(car);
   } );
   
