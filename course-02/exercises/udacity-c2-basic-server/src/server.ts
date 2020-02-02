@@ -3,7 +3,7 @@ import bodyParser from 'body-parser';
 
 import {Car, cars as cars_list} from './cars';
 
-(async () => {
+(() => {
   let cars: Car[] = cars_list;
 
   //Create an express application

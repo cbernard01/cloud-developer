@@ -8,6 +8,7 @@ const router: Router = Router();
 // Get all feed items
 router.get('/', async (req: Request, res: Response) => {
     const items = await FeedItem.findAndCountAll({order: [['id', 'DESC']]});
+
     items.rows.map((item) => {
             if(item.url) {
                 item.url = AWS.getGetSignedUrl(item.url);
@@ -16,15 +17,24 @@ router.get('/', async (req: Request, res: Response) => {
     res.send(items);
 });
 
-//@TODO
-//Add an endpoint to GET a specific resource by Primary Key
+// Get a specific resource by Primary Key
+router.get('/:id', async (req: Request, res: Response) => {
+    const {id} = req.params;
+    const item = await FeedItem.findByPk(id);
+
+    if(!item) return res.status(404).send(`Feed with ID: ${id} was not found.`);
+    else return res.status(200).send(item);
+});
 
 // update a specific resource
-router.patch('/:id', 
-    requireAuth, 
-    async (req: Request, res: Response) => {
-        //@TODO try it yourself
-        res.send(500).send("not implemented")
+router.patch('/:id', requireAuth, async (req: Request, res: Response) => {
+    const {id} = req.params;
+    const {caption, url} = req.body;
+
+    await FeedItem.update({caption, url}, {where: {id}});
+    const item = await FeedItem.findByPk(id);
+
+    return res.status(200).send(item);
 });
 
 
