@@ -5,9 +5,7 @@ const c = config.dev;
 const signedUrlExpireSeconds = 60 * 5;
 
 //Configure AWS
-if(c.aws_profile !== "DEPLOYED") {
-  AWS.config.credentials = new AWS.SharedIniFileCredentials({profile: c.aws_profile});
-}
+AWS.config.credentials = new AWS.SharedIniFileCredentials({profile: c.aws_profile});
 
 export const s3 = new AWS.S3({
   signatureVersion: 'v4',
