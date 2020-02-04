@@ -9,34 +9,46 @@ import {filterImageFromURL, deleteLocalFiles} from './util/util';
 
   // Set the network port
   const port = process.env.PORT || 8082;
-  
+
   // Use the body parser middleware for post requests
   app.use(bodyParser.json());
 
-  // @TODO1 IMPLEMENT A RESTFUL ENDPOINT
-  // GET /filteredimage?image_url={{URL}}
-  // endpoint to filter an image from a public url.
-  // IT SHOULD
-  //    1
-  //    1. validate the image_url query
-  //    2. call filterImageFromURL(image_url) to filter the image
-  //    3. send the resulting file in the response
-  //    4. deletes any files on the server on finish of the response
-  // QUERY PARAMATERS
-  //    image_url: URL of a publicly accessible image
-  // RETURNS
-  //   the filtered image file [!!TIP res.sendFile(filteredpath); might be useful]
+  // Filter Image endpoint
+  // Receives an image URL query string and returns a formatted image file
+  app.get("/filteredimage", async (req, res)=>{
+    // Get Query string image_url
+    const image_url =  req.query.image_url;
 
-  /**************************************************************************** */
+    // Validate that the image_url query string is present
+    // if not present respond with error and status 400
+    if (!image_url) return res.status(400).send("Please provide image url.");
 
-  //! END @TODO1
-  
+    // Filter image with utils/filterImageFromURL method:
+    // if no errors respond with resulting image and status 200
+    // if error, catch error and respond with error and status 400
+    // NOTE: I modified the filterImageFromURL function so that
+    // I could catch the Jimp errors and reject the promise.
+    await filterImageFromURL(image_url).then(path => {
+      // Respond with resulting image and status 200
+      res.status(200).sendFile(path);
+      // After receiving response "close" notification delete image file
+      // NOTE: I modified the deleteLocalFunction function so that
+      // I could delete the image file after every response.
+      // This required me to remove the Array to accept a single file string.
+      res.on("close", () => {deleteLocalFiles(path)});
+    }).catch(error => {
+      // Console log error for AWS monitoring and log collection.
+      console.log(error);
+      // Promise rejection respond with error and status 400
+      return res.status(400).send("Something went wrong.");
+    });
+  });
+
   // Root Endpoint
   // Displays a simple message to the user
   app.get( "/", async ( req, res ) => {
     res.send("try GET /filteredimage?image_url={{}}")
   } );
-  
 
   // Start the Server
   app.listen( port, () => {
