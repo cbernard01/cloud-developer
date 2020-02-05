@@ -30,12 +30,14 @@ import {filterImageFromURL, deleteLocalFiles} from './util/util';
     // I could catch the Jimp errors and reject the promise.
     await filterImageFromURL(image_url).then(path => {
       // Respond with resulting image and status 200
-      res.status(200).sendFile(path);
-      // After receiving response "close" notification delete image file
-      // NOTE: I modified the deleteLocalFunction function so that
-      // I could delete the image file after every response.
-      // This required me to remove the Array to accept a single file string.
-      res.on("close", () => {deleteLocalFiles(path)});
+      // Delete the file on completion of image transfer.
+      return res.status(200).sendFile(path, ()=> {
+        // After response, delete image file.
+        //  NOTE: I modified the deleteLocalFiles function so that
+        // I could delete teh file immediately after the sendFile action.
+        // This change required that I change the Array parameter to a string parameter.
+        deleteLocalFiles(path);
+      });
     }).catch(error => {
       // Console log error for AWS monitoring and log collection.
       console.log(error);
